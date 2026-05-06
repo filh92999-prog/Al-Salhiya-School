@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, FileText, Image as ImageIcon, Award, MessageCircle } from 'lucide-react';
+import { ArrowRight, FileText, Image as ImageIcon, Award, MessageCircle, Video } from 'lucide-react';
 import { AuthGuard } from '../components/AuthGuard';
 
 import LessonPrep from '../components/Teacher/LessonPrep';
 import ImageTool from '../components/Teacher/ImageTool';
+import VideoTool from '../components/Teacher/VideoTool';
 import CertificateGen from '../components/Teacher/CertificateGen';
 import TeacherChat from '../components/Teacher/TeacherChat';
 
 export default function TeacherView({ onBack }: { onBack: () => void }) {
-  const [activeTab, setActiveTab] = useState<'prep' | 'image' | 'cert' | 'chat'>('prep');
+  const [activeTab, setActiveTab] = useState<'prep' | 'image' | 'video' | 'cert' | 'chat'>('prep');
 
   return (
     <AuthGuard onBack={onBack} title="بوابة المعلمين">
@@ -31,7 +32,8 @@ export default function TeacherView({ onBack }: { onBack: () => void }) {
           
           <div className="p-4 flex-1 overflow-y-auto space-y-2">
             <SidebarButton active={activeTab === 'prep'} onClick={() => setActiveTab('prep')} icon={<FileText className="w-5 h-5" />} label="تحضير الدروس الذكي" />
-            <SidebarButton active={activeTab === 'image'} onClick={() => setActiveTab('image')} icon={<ImageIcon className="w-5 h-5" />} label="أداة الصور التعليمية" />
+            <SidebarButton active={activeTab === 'image'} onClick={() => setActiveTab('image')} icon={<ImageIcon className="w-5 h-5" />} label="بنانا بنانا برو للصور" />
+            <SidebarButton active={activeTab === 'video'} onClick={() => setActiveTab('video')} icon={<Video className="w-5 h-5" />} label="إنشاء فيديو حقيقي" />
             <SidebarButton active={activeTab === 'cert'} onClick={() => setActiveTab('cert')} icon={<Award className="w-5 h-5" />} label="قوالب الشهادات" />
             <SidebarButton active={activeTab === 'chat'} onClick={() => setActiveTab('chat')} icon={<MessageCircle className="w-5 h-5" />} label="محادثة المعلم الذكي" />
           </div>
@@ -55,6 +57,7 @@ export default function TeacherView({ onBack }: { onBack: () => void }) {
              >
                 {activeTab === 'prep' && <LessonPrep />}
                 {activeTab === 'image' && <ImageTool />}
+                {activeTab === 'video' && <VideoTool />}
                 {activeTab === 'cert' && <CertificateGen />}
                 {activeTab === 'chat' && <TeacherChat />}
              </motion.div>

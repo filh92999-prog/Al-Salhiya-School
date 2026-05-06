@@ -29,9 +29,9 @@ export default function ImageTool() {
        <div className="p-6 border-b border-slate-100 bg-slate-50">
           <h2 className="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
              <ImageIcon className="w-6 h-6 text-indigo-500" />
-             أداة توليد وتعديل الصور - نانو بنانا برو
+             أداة توليد وتعديل الصور - بنانا بنانا برو
           </h2>
-          <p className="text-slate-500">قم بتوليد صور توضيحية باستخدام الذكاء الاصطناعي (نانو بنانا برو) لاستخدامها في عروضك ودروسك.</p>
+          <p className="text-slate-500">قم بتوليد صور توضيحية باستخدام الذكاء الاصطناعي (بنانا بنانا برو) لاستخدامها في عروضك ودروسك.</p>
        </div>
 
        <div className="flex-1 overflow-y-auto p-6">
@@ -81,14 +81,14 @@ export default function ImageTool() {
                     {isGenerating ? (
                         <div className="text-indigo-500 flex flex-col items-center animate-pulse">
                             <Sparkles className="w-10 h-10 mb-2" />
-                            <span className="font-bold">يتم الآن رسم الصورة باستخدام نانو بنانا برو...</span>
+                            <span className="font-bold">يتم الآن رسم الصورة باستخدام بنانا بنانا برو...</span>
                         </div>
                     ) : imageUrl ? (
                         <>
                             <p className="text-sm text-indigo-600 font-bold flex items-center gap-2 bg-indigo-50 w-fit px-3 py-1.5 rounded-lg border border-indigo-100 self-start">
-                                <Sparkles className="w-4 h-4"/> تم توليد هذه الصورة حصرياً بواسطة نموذج نانو بنانا برو
+                                <Sparkles className="w-4 h-4"/> تم توليد هذه الصورة حصرياً بواسطة نموذج بنانا بنانا برو
                             </p>
-                            <img src={imageUrl} alt="Generated using Nano Banana Pro" className="rounded-xl shadow-lg w-full h-auto object-contain max-h-min" />
+                            <img src={imageUrl} alt="Generated using Banana Banana Pro" className="rounded-xl shadow-lg w-full h-auto object-contain max-h-min" />
                         </>
                     ) : (
                         <div className="text-slate-400 text-center">

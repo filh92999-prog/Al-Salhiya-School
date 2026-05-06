@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon, Upload, Download, Sparkles } from 'lucide-react';
-import { generateText } from '../../lib/gemini';
+import { generateText, generateImage } from '../../lib/gemini';
 
 export default function ImageTool() {
   const [prompt, setPrompt] = useState('');
@@ -14,11 +14,12 @@ export default function ImageTool() {
     try {
         const translatedPrompt = await generateText(`مطلوب توليد صورة تعليمية. النص الأصلي: "${prompt}". اكتب لي وصفاً دقيقاً باللغة الإنجليزية (English Prompt) لإنشاء صورة احترافية. اكتب الوصف فقط باللغة الإنجليزية بدون أي مقدمات.`);
         
-        // Fast generation: pollinations supports multiple languages and processes requests directly.
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(translatedPrompt + " educational illustration high quality")}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
-        setImageUrl(url);
+        // Use gemini for image generation natively
+        const b64Url = await generateImage(translatedPrompt + " educational illustration high quality");
+        setImageUrl(b64Url);
     } catch (e) {
         console.error(e);
+        alert("حدث خطأ في توليد الصورة");
     } finally {
         setIsGenerating(false);
     }

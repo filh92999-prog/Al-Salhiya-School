@@ -1,46 +1,12 @@
 /// <reference types="vite/client" />
 import { GoogleGenAI } from "@google/genai";
 
-const getApiKey = () => {
-  if (typeof process !== 'undefined' && process.env.GEMINI_API_KEY) {
-    return process.env.GEMINI_API_KEY;
-  }
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
-    return import.meta.env.VITE_GEMINI_API_KEY;
-  }
-  return "";
-};
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const apiKey = getApiKey();
-
-if (!apiKey) {
-    console.warn("تنبيه: مفتاح GEMINI_API_KEY غير معرف. تأكد من إضافته في إعدادات Vercel باسم VITE_GEMINI_API_KEY");
-}
-
-let ai: GoogleGenAI | null = null;
-try {
-  ai = new GoogleGenAI({ apiKey: apiKey || "dummy-key-to-prevent-crash" });
-} catch (e) {
-  console.error("Failed to initialize GoogleGenAI", e);
-}
-
-export const MODEL = "gemini-2.5-flash"; // استخدم الإصدار الأحدث
+export const MODEL = "gemini-3-flash-preview";
 
 export async function generateText(prompt: string, systemInstruction?: string, responseSchema: any = null) {
-  if (!apiKey || apiKey.trim() === "undefined" || apiKey.trim() === "") {
-     console.error("No API key available.");
-     return "عذراً، يجب إعداد مفتاح VITE_GEMINI_API_KEY في النظام لكي يعمل الذكاء الاصطناعي.";
-  }
-
-  if (!ai) {
-     return "عذراً، لم يتم تهيئة المساعد الذكي بنجاح.";
-  }
-
   try {
-    const cleanKey = apiKey.replace(/['"]/g, '').trim();
-    // Re-initialize with clean key to be safe
-    const client = new GoogleGenAI({ apiKey: cleanKey });
-    
     let config: any = {};
     if (systemInstruction) config.systemInstruction = systemInstruction;
     if (responseSchema) {
@@ -48,7 +14,7 @@ export async function generateText(prompt: string, systemInstruction?: string, r
       config.responseSchema = responseSchema;
     }
 
-    const response = await client.models.generateContent({
+    const response = await ai.models.generateContent({
       model: MODEL,
       contents: prompt,
       config: Object.keys(config).length > 0 ? config : undefined
@@ -58,5 +24,77 @@ export async function generateText(prompt: string, systemInstruction?: string, r
   } catch (e: any) {
     console.error("AI Generation Error", e);
     return `عذراً، حدث خطأ في الاتصال بالذكاء الاصطناعي. القطأ: ${e.message || 'غير معروف'}`;
+  }
+}
+
+export async function generateImage(prompt: string) {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          {
+            text: prompt,
+          },
+        ],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1",
+        }
+      },
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:image/png;base64,${part.inlineData.data}`;
+      }
+    }
+    throw new Error("No image data found in the response");
+  } catch (e: any) {
+    console.error("Image Generation Error", e);
+    throw e;
+  }
+}
+
+let activeVideoOperation: any = null;
+
+export async function generateVideo(prompt: string) {
+  try {
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-lite-generate-preview',
+      prompt: prompt,
+      config: {
+        numberOfVideos: 1,
+        resolution: '1080p',
+        aspectRatio: '16:9'
+      }
+    });
+
+    activeVideoOperation = operation;
+
+    while (!operation.done) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      operation = await ai.operations.getVideosOperation({operation: operation});
+      activeVideoOperation = operation;
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    
+    if (downloadLink && process.env.GEMINI_API_KEY) {
+      const response = await fetch(downloadLink, {
+        method: 'GET',
+        headers: {
+          'x-goog-api-key': process.env.GEMINI_API_KEY,
+        },
+      });
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    }
+
+    return null;
+  } catch (e: any) {
+    console.error("Video Generation Error", e);
+    throw e;
   }
 }

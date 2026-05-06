@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Video, Upload, Download, Sparkles, Key } from 'lucide-react';
-import { generateText } from '../../lib/gemini';
+import { generateText, generateVideo } from '../../lib/gemini';
 
 const SAMPLE_VIDEOS = [
     "https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-4174-large.mp4",
@@ -13,23 +13,19 @@ export default function VideoTool() {
   const [prompt, setPrompt] = useState('');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [useAPI, setUseAPI] = useState(false);
+  const [useAPI, setUseAPI] = useState(true);
 
   const handleGenerate = async () => {
     if (!prompt) return;
     setIsGenerating(true);
     
     try {
-        // Prompt tuning using our standard Gemini API
         const translatedPrompt = await generateText(`أريد إنشاء فيديو. النص الأصلي: "${prompt}". اكتب لي وصفاً دقيقاً باللغة الإنجليزية لإنشاء فيديو سينمائي احترافي. الوصف فقط.`);
 
-        if (useAPI && apiKey) {
-            // Simulated call to a real video API (like Runway Gen-3 or Luma)
-            // In a real scenario we would make a POST to their endpoints.
-            await new Promise(r => setTimeout(r, 4000));
-            // Let's fallback to our sample videos since we don't actually have a real video API endpoint here without proper setup.
-            setVideoUrl(SAMPLE_VIDEOS[Math.floor(Math.random() * SAMPLE_VIDEOS.length)]);
+        if (useAPI) {
+            // Real Veo API Generation
+            const blobUrl = await generateVideo(translatedPrompt);
+            if (blobUrl) setVideoUrl(blobUrl);
         } else {
             // Simulated fast generation (Picking a relevant generic video)
             await new Promise(r => setTimeout(r, 2000));
@@ -37,6 +33,7 @@ export default function VideoTool() {
         }
     } catch (e) {
         console.error(e);
+        alert("حدث خطأ في التوليد. الرجاء المحاولة مجدداً.");
     } finally {
         setIsGenerating(false);
     }
@@ -47,9 +44,9 @@ export default function VideoTool() {
        <div className="p-6 border-b border-slate-100 bg-slate-50">
           <h2 className="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
              <Video className="w-6 h-6 text-rose-500" />
-             أداة إنشاء فيديو حقيقي بالذكاء الاصطناعي
+             أداة إنشاء فيديو حقيقي بالذكاء الاصطناعي (Veo)
           </h2>
-          <p className="text-slate-500">قم بتوليد مقاطع فيديو عالية الجودة لاستخدامها في الدروس التفاعلية والعروض التقديمية.</p>
+          <p className="text-slate-500">قم بتوليد مقاطع فيديو سينمائية باستخدام نموذج Veo لاستخدامها في الدروس والتفاعل.</p>
        </div>
 
        <div className="flex-1 overflow-y-auto p-6">
@@ -62,22 +59,9 @@ export default function VideoTool() {
                        <h3 className="font-bold text-lg text-slate-800">توليد فيديو جديد</h3>
                        <div className="flex items-center gap-2 text-sm">
                            <input type="checkbox" id="pro-mode" checked={useAPI} onChange={(e) => setUseAPI(e.target.checked)} className="rounded text-rose-500 focus:ring-rose-500" />
-                           <label htmlFor="pro-mode" className="text-slate-600 font-bold">نمط متقدم (API)</label>
+                           <label htmlFor="pro-mode" className="text-slate-600 font-bold">توليد فعلي (Veo - يأخذ دقيقة)</label>
                        </div>
                    </div>
-
-                   {useAPI && (
-                       <div className="space-y-2">
-                           <span className="text-xs font-bold text-slate-500 flex items-center gap-1"><Key className="w-3 h-3"/> مفتاح Runway / Luma</span>
-                           <input 
-                             type="password"
-                             value={apiKey}
-                             onChange={e => setApiKey(e.target.value)}
-                             placeholder="sk-..."
-                             className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg focus:border-rose-500 outline-none font-mono text-sm"
-                           />
-                       </div>
-                   )}
 
                    <textarea 
                      value={prompt}
@@ -90,14 +74,14 @@ export default function VideoTool() {
                       disabled={!prompt || isGenerating}
                       className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl disabled:bg-slate-300 transition-all shadow flex items-center justify-center gap-2"
                    >
-                      {isGenerating ? 'جاري تصيير الفيديو...' : 'توليد الفيديو'}
+                      {isGenerating ? 'جاري تصيير الفيديو... (قد يستغرق 1-2 دقائق)' : 'توليد الفيديو'}
                       {!isGenerating && <Sparkles className="w-4 h-4" />}
                    </button>
                 </div>
 
                 <div className="bg-rose-50 p-6 rounded-2xl border border-rose-200 border-dashed text-center">
                    <p className="text-sm text-rose-600 font-medium mb-2">
-                       تنبيه: التوليد الفعلي للفيديو يستهلك الكثير من الموارد وقد يستغرق وقتاً طويلاً. إذا لم تقم بربط API مدفوع، سيتم عرض نماذج محاكية بجودة 4K بدلاً من التوليد الفعلي للحفاظ على التجربة.
+                       تنبيه: التوليد الفعلي للفيديو يستهلك الكثير من الموارد وقد يستغرق وقتاً طويلاً. يمكنك إيقاف خيار "توليد فعلي" للحصول على فيديو تجريبي سريع.
                    </p>
                 </div>
              </div>
@@ -114,9 +98,10 @@ export default function VideoTool() {
                 </div>
                 <div className="flex-1 flex flex-col items-center justify-center relative p-4 gap-4">
                     {isGenerating ? (
-                        <div className="text-rose-400 flex flex-col items-center animate-pulse">
-                            <Sparkles className="w-10 h-10 mb-2" />
-                            <span className="font-bold">جاري معالجة الإطارات وإنشاء الفيديو...</span>
+                        <div className="text-rose-400 flex flex-col items-center animate-pulse text-center">
+                            <Sparkles className="w-10 h-10 mb-2 mx-auto" />
+                            <span className="font-bold mb-1">يتم الآن توليد الفيديو بواسطة 🌟 Google Veo</span>
+                            <span className="text-sm opacity-70">المعالجة بالذكاء الاصطناعي معقدة، يرجى الانتظار...</span>
                         </div>
                     ) : videoUrl ? (
                         <video 

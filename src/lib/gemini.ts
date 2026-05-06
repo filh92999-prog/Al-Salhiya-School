@@ -12,8 +12,14 @@ if (!apiKey) {
 export const MODEL = "gemini-1.5-flash"; // استخدم الإصدار المستقر
 
 export async function generateText(prompt: string, systemInstruction?: string, responseSchema: any = null) {
+  if (!apiKey || apiKey.trim() === "undefined" || apiKey.trim() === "") {
+     console.error("No API key available.");
+     return "عذراً، يجب إعداد مفتاح VITE_GEMINI_API_KEY في النظام لكي يعمل الذكاء الاصطناعي.";
+  }
+
   // استخدام الرابط المباشر لـ API كما في الكود الخاص بك
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+  const cleanKey = apiKey.replace(/['"]/g, '').trim();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${cleanKey}`;
   
   const payload: any = { 
     contents: [{ role: "user", parts: [{ text: prompt }] }] 
